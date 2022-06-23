@@ -51,14 +51,14 @@ include 'lib/formlib'
 
 engine.name="FormAndVoid"
 
-PRESSURE_OPTIONS = {"none", "amp", "cc 1", "cc 1 + amp"}
+PRESSURE_OPTIONS = {"none", "pressure", "amp", "pressure+amp"}
 
 MOD_TARGETS = { 
     "fundamental", "fundamental amp", 
     "formant 1", "formant 1 amp", "formant 1 index", 
     "formant 2", "formant 2 amp", "formant 2 index",
 }
-MOD_SOURCES = {"env 1", "env 2", "lfo"}
+MOD_SOURCES = {"env 1", "env 2", "lfo", "pressure"}
 
 view = 1
 env_edit = 0
@@ -114,12 +114,12 @@ function process_midi(data)
     active_notes[d.ch][d.note] = music.note_num_to_freq(d.note)
     engine.noteOn(timbre, d.note, music.note_num_to_freq(d.note), d.vel/127)
     count = count + 1
-    print("on", timbre, d.note, count)
+    -- print("on", timbre, d.note, count)
   elseif d.type == "note_off" then
     active_notes[d.ch][d.note] = nil
     engine.noteOff(timbre, d.note)
     count = count - 1
-    print("off", timbre, d.note, count)
+    -- print("off", timbre, d.note, count)
   elseif d.type == "pitchbend" then
     local bend_st = (util.round(d.val / 2)) / 8192 * 2 -1 -- Convert to -1 to 1
     for note, freq in pairs(active_notes[d.ch]) do
@@ -132,22 +132,14 @@ function process_midi(data)
             engine.setNote(timbre, note, "amp", d.val/127)
         end
       end
-      if params:get("pressure") == 4 or params:get("pressure") == 3 then
-          d.cc = 1
-      end
   elseif d.type == "channel_pressure" then
-      if params:get("pressure") == 2 or params:get("pressure") == 3 then
+      if params:get("pressure") == 3 or params:get("pressure") == 4 then
           engine.set(timbre, "amp", d.val/127)
       end
-      if params:get("pressure") == 4 or params:get("pressure") == 3 then
-          d.cc = 1
-      end      
+      if params:get("pressure") == 2 or params:get("pressure") == 4 then
+          engine.set(timbre, "pres", d.val/127)
+      end
   elseif d.type == "cc" then
-      -- pass handled next
-  else
-      print(d.type)      
-  end
-  if d.type == "cc" or d.cc == 1 then
       local r = norns.pmap.rev[target][params:get("main channel")][d.cc]
       local v = d.val
       if r ~= nil and d.ch ~= params:get("main channel") then
@@ -168,7 +160,9 @@ function process_midi(data)
                 p:set_mpe(timbre, s)
             end
         end
-      end
+      end      
+  else
+      print(d.type)      
   end
 end
 
@@ -192,11 +186,12 @@ function draw_lfo(x, y, l, h, hz, width, total)
     local wave_px = (wavelen*l)/total
     local rise_px = width*wave_px
     local fall_px = (1-width)*wave_px
-    local pos = 0
-    while pos < l do
-        screen.line_rel(rise_px, -h)
-        screen.line_rel(fall_px, h)
-        pos = pos + wave_px
+    local pos = x
+    while pos < l + h do
+        screen.line(pos + rise_px, y-h)
+        pos = pos + rise_px
+        screen.line(pos + fall_px, y)
+        pos = pos + fall_px
     end
     screen.stroke()
 end
@@ -315,7 +310,7 @@ function redraw()
         end    
         screen.move(0, 50)
         screen.text("lfo")        
-        draw_lfo(28, 61, 99, 17, params:get("the lfo freq"), 0.5, total)
+        draw_lfo(28, 61, 99, 17, params:get("the lfo freq"), params:get("the lfo width"), total)
     elseif view == 3 then
         local left = 16
         local top = 11
@@ -326,6 +321,8 @@ function redraw()
         screen.text("e2")
         screen.move(0, 44)
         screen.text("lfo")
+        screen.move(0, 55)
+        screen.text("prs")
         for i, v in ipairs({"f0", "a0", "f1", "a1", "i1", "f2", "a2", "i2"}) do
             screen.move(left + (i-1) * (128-left)/8, 8)
             screen.text(v)
@@ -422,6 +419,8 @@ function enc(n,d)
             else
                 if n == 2 then
                     name = "the lfo freq"
+                elseif n == 3 then
+                    name = "the lfo width"
                 end
             end
             if name ~= nil then
@@ -436,7 +435,6 @@ function enc(n,d)
                 local src = MOD_SOURCES[(matrix_edit % #MOD_SOURCES) + 1]
                 local name = "the " .. src .. " to " .. targ
                 local p = params:lookup_param(name)
-                print("inc", name, d)
                 if k3 == 1 then
                     p:set_raw(p.raw + 0.1 * d * p:get_delta())
                 else
@@ -465,7 +463,7 @@ function init()
     params:add_number("first channel", "first channel", 1, 15, 2, nil, nil, false)
     params:add_number("mpe channels", "mpe channels", 1, 8, 7, nil, nil, false)
     params:add_number("bend range", "bend range", 1, 24, 12, nil, nil, false)
-    params:add_option("pressure", "pressure", PRESSURE_OPTIONS, 2)
+    params:add_option("pressure", "pressure", PRESSURE_OPTIONS, 4)
     set_up_timbre(-1, "the")
     params:read(1)
     params:bang()

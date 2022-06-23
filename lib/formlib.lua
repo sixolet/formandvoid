@@ -19,7 +19,7 @@ function set_up_timbre_attr(sect, timbre_n, name, key, cspec)
 end
 
 function set_up_timbre(n, sect)
-    local num_params = 47
+    local num_params = 56
     if n == nil then
         n = 0
     end
@@ -51,7 +51,7 @@ function set_up_timbre(n, sect)
     set_up_timbre_attr(sect, n, "attack 1", "a1", controlspec.new(0.001, 4, 'exp', 0, 0.5))
     set_up_timbre_attr(sect, n, "decay 1", "d1", controlspec.new(0.001, 4, 'exp', 0, 0.4))
     set_up_timbre_attr(sect, n, "sustain 1", "s1", controlspec.new(0, 1, 'lin', 0, 0.9))
-    set_up_timbre_attr(sect, n, "release 1", "r1", controlspec.new(0.001, 4, 'exp', 0, 2))
+    set_up_timbre_attr(sect, n, "release 1", "r1", controlspec.new(0.001, 4, 'exp', 0, 0.3))
     set_up_timbre_attr(sect, n, "attack 2", "a2", controlspec.new(0.001, 4, 'exp', 0, 2))
     set_up_timbre_attr(sect, n, "decay 2", "d2", controlspec.new(0.001, 4, 'exp', 0, 1))
     set_up_timbre_attr(sect, n, "sustain 2", "s2", controlspec.new(0, 1, 'lin', 0, 0.5))
@@ -60,6 +60,7 @@ function set_up_timbre(n, sect)
     lowfreq.default = 5
     lowfreq.minval = 0.05
     set_up_timbre_attr(sect, n, "lfo freq", "lfoFreq", lowfreq)
+    set_up_timbre_attr(sect, n, "lfo width", "lfoWidth", controlspec.new(0, 1, 'lin', 0, 0.5))
     params:add_separator("matrix")
     set_up_timbre_attr(sect, n, "env 1 to fundamental", "e1F0", controlspec.new(-0.8, 2, 'lin', 0, 0.0))
     set_up_timbre_attr(sect, n, "env 1 to fundamental amp", "e1F0Amp", controlspec.UNIPOLAR)
@@ -87,9 +88,19 @@ function set_up_timbre(n, sect)
     set_up_timbre_attr(sect, n, "lfo to formant 2", "lfoF2", controlspec.new(-0.8, 2, 'lin', 0, 0))
     set_up_timbre_attr(sect, n, "lfo to formant 2 amp", "lfoF2Amp", controlspec.new(-0.8, 1, 'lin', 0, 0.1))
     set_up_timbre_attr(sect, n, "lfo to formant 2 index", "lfoF2Index", controlspec.new(-0.8, 1, 'lin', 0, 0.0))
+    
+    set_up_timbre_attr(sect, n, "pressure to fundamental", "presF0", controlspec.new(-0.8, 2, 'lin', 0, 0.0))
+    set_up_timbre_attr(sect, n, "pressure to fundamental amp", "presF0Amp", controlspec.new(-0.8, 1, 'lin', 0, 0.0))
+    set_up_timbre_attr(sect, n, "pressure to formant 1", "presF1", controlspec.new(-0.8, 2, 'lin', 0, 0.0))
+    set_up_timbre_attr(sect, n, "pressure to formant 1 amp", "presF1Amp", controlspec.new(0, 1, 'lin', 0, 0.2))
+    set_up_timbre_attr(sect, n, "pressure to formant 1 index", "presF1index", controlspec.new(0, 1, 'lin', 0, 0.0))
+    set_up_timbre_attr(sect, n, "pressure to formant 2", "presF2", controlspec.new(-0.8, 2, 'lin', 0, 0))
+    set_up_timbre_attr(sect, n, "pressure to formant 2 amp", "presF2Amp", controlspec.new(0, 1, 'lin', 0, 0.2))
+    set_up_timbre_attr(sect, n, "pressure to formant 2 index", "presF2Index", controlspec.new(0, 1, 'lin', 0, 0.0))
+    
     if n < 0 then
         params:add_separator("quality")
-        params:add_option(sect .. " antialias", "antialias", {"off", "on"}, 1)
+        params:add_option(sect .. " antialias", "antialias", {"off", "on"}, 2)
         params:set_action(sect .. " antialias", function (aa) 
             engine.setAll("model", aa)
         end)
