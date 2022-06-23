@@ -1,3 +1,50 @@
+-- Form and Void
+--
+-- MPE formant polysynth
+-- sounds a little like wind
+-- instruments or voice.
+-- 
+-- @sixolet
+--
+-- Impulses trigger grains of 2
+-- formants. Formant 1 grains =
+-- FM grains; set its index to 0
+-- = sine grains. Formant 2
+-- = sine grains, but they may
+-- phase modulate the carrier.
+--
+--               F1 mod
+--                 |
+-- F0 Impulse -> F1 ------\
+--           \-> F2 -------+-> out
+--                 \-> F0-/
+--
+-- Instructions
+-- 
+-- E1 selects screen.
+-- 
+-- Waveform Screen
+-- 
+-- E2 controls formant 1
+-- E3 controls formant 2
+-- No key: freq
+-- K2: amp
+-- K3: waves per formant
+--
+-- Modulator Screen
+-- 
+-- Use K2, K3 to cycle through
+-- attributes, 2 at a time.
+-- Use E2, E3 to modify them
+--
+-- Mod Matrix Screen
+--
+-- E1 to select modulation
+-- E2 to modify it
+-- K1 zeros the modulation
+-- Hold K2 for fine control
+
+
 music = require 'musicutil'
 
 include 'lib/formlib'

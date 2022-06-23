@@ -23,9 +23,9 @@ function set_up_timbre(n, sect)
     if n == nil then
         n = 0
     end
-    -- if n < 0 then
-    --     num_params = num_params + 2
-    -- end
+    if n < 0 then
+        num_params = num_params + 2
+    end
     if sect == nil then
         sect = "chord"
     end
@@ -87,12 +87,12 @@ function set_up_timbre(n, sect)
     set_up_timbre_attr(sect, n, "lfo to formant 2", "lfoF2", controlspec.new(-0.8, 2, 'lin', 0, 0))
     set_up_timbre_attr(sect, n, "lfo to formant 2 amp", "lfoF2Amp", controlspec.new(-0.8, 1, 'lin', 0, 0.1))
     set_up_timbre_attr(sect, n, "lfo to formant 2 index", "lfoF2Index", controlspec.new(-0.8, 1, 'lin', 0, 0.0))
-    -- if n < 0 then
-    --     params:add_separator("quality")
-    --     params:add_option(sect .. " antialias", "antialias", {"off", "on"}, 1)
-    --     params:set_action(sect .. " antialias", function (aa) 
-    --         engine.setAll("model", aa)
-    --     end)
-    -- end
+    if n < 0 then
+        params:add_separator("quality")
+        params:add_option(sect .. " antialias", "antialias", {"off", "on"}, 1)
+        params:set_action(sect .. " antialias", function (aa) 
+            engine.setAll("model", aa)
+        end)
+    end
 
 end

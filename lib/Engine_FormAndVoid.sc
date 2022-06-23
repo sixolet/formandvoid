@@ -124,7 +124,7 @@ Engine_FormAndVoid : CroneEngine {
 		    var proto = timbres[timbre];
 		    var controls = proto.asPairs;
 		    controls.addAll([\freq, freq, \amp, amp]);
-            noteTracker[timbre][note] = Synth(\form, controls, target: noteGroups[timbre]);
+            noteTracker[timbre][note] = Synth(proto[\instrument], controls, target: noteGroups[timbre]);
 		});
         
         this.addCommand(\noteOff, "ii", { |msg|
