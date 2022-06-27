@@ -138,9 +138,9 @@ Engine_FormAndVoid : CroneEngine {
             };
             inFlight = noteTracker.sum(_.size) + released.size;
             inFlight.postln;
-            if (inFlight > 7, {
+            if (inFlight > 5, {
                 released.do { |it|
-                    if (inFlight > 7, {it.release(0.1); inFlight = inFlight - 1});
+                    if (inFlight > 5, {it.release(0.1); inFlight = inFlight - 1});
                 };
             });
 		});
