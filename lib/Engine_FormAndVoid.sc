@@ -1,6 +1,6 @@
 Engine_FormAndVoid : CroneEngine {
     const <numVoices = 8;
-    var <timbres, <bus, <eoc, <lfoGroup, <lfos, <lfoBusses, <noteGroups, <noteContainer, <noteTracker, <silentBuf, <winBuf;
+    var <timbres, <bus, <eoc, <lfoGroup, <lfos, <lfoBusses, <noteGroups, <noteContainer, <noteTracker, <silentBuf, <winBuf, <released;
 
 	*new { arg context, doneCallback;
 		^super.new(context, doneCallback);
@@ -8,6 +8,7 @@ Engine_FormAndVoid : CroneEngine {
 	
 	alloc {
         var win = Signal.hanningWindow(1024);
+        released = [];
         winBuf = Buffer.loadCollection(Server.default, win);
         silentBuf = Buffer.loadCollection(Server.default, 0!1024);	
 	    bus = Bus.audio(Server.default, 2);
@@ -127,16 +128,32 @@ Engine_FormAndVoid : CroneEngine {
 		    var amp = msg[4].asFloat;
 		    var proto = timbres[timbre];
 		    var controls = proto.asPairs;
+		    var syn;
+		    var inFlight;
 		    controls.addAll([\freq, freq, \amp, amp]);
-            noteTracker[timbre][note] = Synth(proto[\instrument], controls, target: noteGroups[timbre]);
+            syn = Synth(proto[\instrument], controls, target: noteGroups[timbre]);
+            noteTracker[timbre][note] = syn;
+            syn.onFree { 
+                released = released.reject { |item, i| item.nodeID == syn.nodeID };
+            };
+            inFlight = noteTracker.sum(_.size) + released.size;
+            inFlight.postln;
+            if (inFlight > 7, {
+                released.do { |it|
+                    if (inFlight > 7, {it.release(0.1); inFlight = inFlight - 1});
+                };
+            });
 		});
         
         this.addCommand(\noteOff, "ii", { |msg|
             var timbre = msg[1].asInteger;
             var note = msg[2].asInteger;
             if (noteTracker[timbre].includesKey(note), {
+                var syn;
                 noteTracker[timbre][note].set(\gate, 0);
+                syn = noteTracker[timbre][note];
                 noteTracker[timbre].removeAt(note);
+                released.add(syn);
             });
         });
         
