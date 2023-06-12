@@ -84,6 +84,15 @@ end
 count = 0
 function process_midi(data)
   local d = midi.to_msg(data)
+  -- Filter out message types not processed below.
+  if d.type ~= "note_on"
+     and d.type ~= "note_off"
+     and d.type ~= "pitchbend"
+     and d.type ~= "key_pressure"
+     and d.type ~= "channel_pressure"
+     and d.type ~= "cc"
+  then return end
+
   local timbre = d.ch - params:get("first channel")
   if d.ch == params:get("main channel") then
       timbre = 0
